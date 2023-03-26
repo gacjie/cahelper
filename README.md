@@ -10,7 +10,7 @@ TG交流群：t.me/btfans
 ###### 使用方法   
  **[(点此免费领取0.99元专业版体验券，3188元大礼包)](https://www.bt.cn/?invite_code=MV9yaHFycXY=)**   
 
-下载 安装包 在宝塔软件商商店第三方插件导入即可
+[下载 安装包](https://github.com/gacjie/cahelper/releases) 在宝塔软件商商店第三方插件导入即可
 
 ###### 功能说明
 ()CA根证书[签发CA根证书] 
