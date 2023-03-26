@@ -1,0 +1,257 @@
+<style>
+    /*样式写这里*/
+    .demo-table table tbody tr td span{
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width:580px;
+        display:block;
+    }
+</style>
+<style>
+.t1{
+	text-align:left!important;
+	width:200px!important;
+}
+</style>
+<link href="/cahelper/static/css/sui.min.css" rel="stylesheet">
+  <!----<script type="text/javascript" src="/cahelper/static/js/jquery.min.js"></script>---->
+  <script type="text/javascript" src="/cahelper/static/js/sui.min.js"></script>
+<div class="bt-form">
+    <div class="bt-w-main">
+        <!--菜单部分-->
+        <div class="bt-w-menu">
+            <p class="bgw" onclick="ca.deatil()">概览</p>
+            <p onclick="ca.config_ca()">CA配置</p>
+			
+        </div>
+        <!--内容部分-->
+        <div class="bt-w-con pd15">
+            <div class="plugin_body" id="plugin_body"></div>
+        </div>
+    </div>
+</div>
+<!--JS脚本部分，不要将JS脚本写在其它地方-->
+<script type="text/javascript">
+
+    //定义窗口尺寸
+    $('.layui-layer-page').css({ 'width': '900px' });
+
+    //左测菜单切换效果
+    $(".bt-w-menu p").click(function () {
+        $(this).addClass('bgw').siblings().removeClass('bgw')
+    });
+	
+   
+		var ca = {
+			loadT:null,
+			//构造概览内容
+			addRootCert:function(){
+				var data={C:$("#canat").val(),ST:$("#caprov").val(),CT:$("#cacity").val(),O:$("#caorgName").val(),OU:$("#caorgDep").val(),CN:$("#cacomName").val(),emailAddress:$("#caemail").val()};
+				//console.log(data);
+				ca.request_plugin("cahelper","addCA",data,function(){
+					layer.close(ca.loadT);
+					ca.config_ca();
+				});
+			},
+			
+
+		downloadFile:function(fileName, content){
+    var aLink = document.createElement('a');
+    var blob = new Blob([content]);
+    var evt = document.createEvent("HTMLEvents");
+    evt.initEvent("click", false, false);//initEvent 不加后两个参数在FF下会报错, 感谢 Barret Lee 的反馈
+    aLink.download = fileName;
+    aLink.href = URL.createObjectURL(blob);
+		aLink.dispatchEvent(evt);
+		},
+			signCert:function(id){
+				var type=$("#type_select").val();
+				var csrFile=$("#ca_csr").val();
+				var AIAAddress2=$("#AIAAddress").val();
+				var CRLAddress2=$("#CRLAddress").val();
+				var CPSAddress2=$("#CPSAddress").val();
+				var MutiDomain2=$("#SNIDomain").val();
+				//console.log(SNIDomain2)
+				data={"caId":id,"type":type,"csr":csrFile,"AIAAddress":AIAAddress2,"CRLAddress":CRLAddress2,"CPSAddress":CPSAddress2,"MutiDomain":MutiDomain2};
+				ca.request_plugin("cahelper","signcert",data,function(data){
+					if(data.status==1){
+						layer.close(ca.loadT);
+						layer.open({
+                    type:1,
+                    title:'下载证书',
+                    area: '500px',
+                    closeBtn: 2,
+                    shadeClose: false,
+    content:"<h1>证书内容:</h1><textarea style=\"width:500px;height:250px\">-----BEGIN CERTIFICATE-----"+data.result+"-----END CERTIFICATE-----</textarea>"
+});
+					}
+					
+					ca.config_ca();
+				});
+				
+			},
+			closeUI:function(){
+				layer.close(ca.loadT);
+			},
+			request_cert_modal:function(ca_id){
+				var useageChoose="";
+				useageChoose += "<div class=\"line \"><span class=\"tname t1\">证书用途:<\/span><div class=\"info-r\">";
+				useageChoose += "<select id=\"type_select\" class=\"bt-input-text mr5\" onchange=\"plugin.site_select_change()\" style=\"width: 250px\">";
+				useageChoose += "<option value=\"serverCert\">服务端证书<\/option>";
+				useageChoose += "<option value=\"clientCert\">客户端证书<\/option>";
+				useageChoose += "<option value=\"codeSign\">代码签名证书<\/option>";
+				useageChoose += "<option value=\"secondCaCert\">下一级CA证书<\/option></select>";
+				useageChoose += '<div class="line "></div>'
+				useageChoose += "<\/div><\/div>";
+				
+				ca.loadT = layer.open({
+                    type:1,
+                    title:'颁发新的证书',
+                    area: '500px',
+                    closeBtn: 2,
+                    shadeClose: false,
+                    content:'<br>'+'<div class="bt-form pd15 pb70">'+
+                        '<div class="line "><span class="tname t1">CSR文件:</span><div class="info-r "><textarea id="ca_csr" class="bt-input-text mr5 toUrl" style="width:250px;height:200px;" value=""></textarea></div></div>'+
+                        useageChoose+
+						'<div class="line "><span class="tname t1">授权信息访问地址(非必需):</span><div class="info-r "><input id="AIAAddress" class="bt-input-text mr5 toUrl" type="text" style="width:250px" placeholder="http://aia.ca.example.com/ca.crt"></div></div>'+
+                        '<div class="line "><span class="tname t1">证书吊销列表地址(非必需):</span><div class="info-r "><input id="CRLAddress" class="bt-input-text mr5 toUrl" type="text" style="width:250px" placeholder="http://crl.ca.example.com/ca_crl.crl"></div></div>'+
+                        '<div class="line "><span class="tname t1">证书颁发策略地址(非必需):</span><div class="info-r "><input id="CPSAddress" class="bt-input-text mr5 toUrl" type="text" style="width:250px" placeholder="https://ca.example.com/CPS"></div></div>'+
+                        '<div class="line "><span class="tname t1">其他域名或IP[用,分割](非必需):</span><div class="info-r "><input id="SNIDomain" class="bt-input-text mr5 toUrl" type="text" style="width:250px" placeholder="xxx.abc.xyz,abc.def.xyz"></div></div>'+
+						'<div class="bt-form-submit-btn">'+
+                            '<div class="state"><button type="button" class="btn btn-sm btn-default" onclick="ca.closeUI()">关闭</button>'+
+                            '<button type="button" class="btn btn-sm btn-success" onclick="ca.signCert(\''+ca_id+'\')" >颁发</button></div>'+
+						'</div>'+
+						
+                    '</div>'
+                });
+			},
+			new_ca:function(){
+				ca.loadT = layer.open({
+                    type:1,
+                    title:'新建\/导入证书颁发机构',
+                    area: '500px',
+                    closeBtn: 2,
+                    shadeClose: false,
+                    content:'已支持中文!<br><div class="bt-form pd15 pb70">'+
+                        '<div class="line "><span class="tname">国家:</span><div class="info-r "><input id="canat" class="bt-input-text mr5 toUrl" type="text" style="width:250px" value="CN"></div></div>'+
+                        '<div class="line "><span class="tname">省份:</span><div class="info-r "><input id="caprov" class="bt-input-text mr5 toUrl" type="text" style="width:250px" value="HuNan"></div></div>'+
+                        '<div class="line "><span class="tname">市:</span><div class="info-r "><input id="cacity" class="bt-input-text mr5 toUrl" type="text" style="width:250px" value="ChangSha"></div></div>'+
+                        '<div class="line "><span class="tname">组织名:</span><div class="info-r "><input id="caorgName" class="bt-input-text mr5 toUrl" type="text" style="width:250px" value="Network Company"></div></div>'+
+                        '<div class="line "><span class="tname">组织单元名:</span><div class="info-r "><input id="caorgDep" class="bt-input-text mr5 toUrl" type="text" style="width:250px" value="Infomation Technology Department"></div></div>'+
+                        '<div class="line "><span class="tname">通用名称:</span><div class="info-r "><input id="cacomName" class="bt-input-text mr5 toUrl" type="text" style="width:250px" value="Network Company CA"></div></div>'+
+                        '<div class="line "><span class="tname">邮件地址:</span><div class="info-r "><input id="caemail" class="bt-input-text mr5 toUrl" type="text" style="width:250px" value="ca@netcpy.cn"></div></div>'+
+                        '<div class="bt-form-submit-btn">'+
+                            '<div class="state"><button type="button" class="btn btn-sm btn-default" >使用密钥对导入(暂未开发)</button>'+
+                            '<button type="button" class="btn btn-sm btn-success" onclick="ca.addRootCert()" >添加</button></div>'+
+                        '</div>'+
+                    '</div>'
+                });
+			},
+			
+			request_cert:function(){
+				var tpl="";
+				tpl+="<a onclick=\"ca.request_cert_modal()\" class=\"sui-btn btn-primary\">颁发新的证书<\/a>";
+				tpl+="";
+					$("#plugin_body").html(tpl);
+			},
+			deatil:function(){
+			var tpl="";
+tpl += "<table class=\"sui-table\">";
+tpl += "	<tbody>";
+tpl += "    <tr>";
+tpl += "      <td>当前OpenSSL版本号:<\/td>";
+tpl += "      <td id=\"openssl_ver\"><i class=\"sui-icon icon-pc-loading\"><\/i><\/td>";
+tpl += "    <\/tr>";
+tpl += "    <tr>";
+tpl += "      <td>作者:<\/td>";
+tpl += "      <td id=\"author\"><a href=\"https://www.baota.me\">gacjie<\/a><\/td>";
+tpl += "    <\/tr>";
+tpl += "    <tr>";
+tpl += "      <td>交流QQ群:<\/td>";
+tpl += "      <td id=\"qqgroup\"><a href=\"https://jq.qq.com/?_wv=1027&k=0ROSIgAI\">699927761<\/a><\/td>";
+tpl += "    <\/tr>";
+tpl += "    <tr>";
+tpl += "      <td>作者邮箱:<\/td>";
+tpl += "      <td id=\"qqgroup\">gacjie@qq.com<\/td>";
+tpl += "    <\/tr>";
+tpl += "    <tr>";
+tpl += "      <td>使用教程:<\/td>";
+tpl += "      <td id=\"howtouse\"><a href=\"https://www.baota.me/tag/cahelper.html\">https://www.baota.me/tag/cahelper.html<\/a><\/td>";
+tpl += "    <\/tr>";
+tpl += "<\/table>";
+
+
+
+				$("#plugin_body").html(tpl);
+				rst=ca.request_plugin("cahelper","getDeatil","",function(data){
+					$("#openssl_ver").html(data.result.version[0]);
+				});
+				
+			},
+			config_ca:function(){
+
+			
+ca.request_plugin("cahelper","getCAs","",function(data){
+var tpl="";
+tpl += "<div class=\"ca_conter\" style=\"overflow: hidden;\">";
+tpl += "					<button class=\"btn btn-success btn-sm add_push_btn\" onclick=\"ca.new_ca()\">新建\/导入证书颁发机构<\/button>";
+tpl += "				<\/div>";
+tpl += "<table class=\"sui-table table-primary\">";
+tpl += "  <thead>";
+tpl += "    <tr>";
+tpl += "      <th style=\"width:40%\">证书颁发机构编号<\/th>";
+tpl += "      <th style=\"width:40%\">通用名称<\/th>";
+tpl += "      <th style=\"width:20%\">操作<\/th>";
+tpl += "    <\/tr>";
+tpl += "  <\/thead>";
+
+					for(i=0;i<data.result.length;i++)tpl += "<tr><td>"+data.result[i].id+"<\/td><td>"+data.result[i].subj+"<\/td><td>"+'<a href="javascript:void(0);" class="sui-btn btn-bordered btn-small btn-primary" onclick="ca.request_cert_modal(\''+data.result[i].id+'\')">颁发证书</a>'+"<\/td><\/tr>";
+					
+					tpl += "  <\/table>";
+					$("#plugin_body").html(tpl);
+				},function(){})
+
+			},
+      
+    /**
+     * 发送请求到插件
+     * 注意：除非你知道如何自己构造正确访问插件的ajax，否则建议您使用此方法与后端进行通信
+     * @param plugin_name    插件名称 如：demo
+     * @param function_name  要访问的方法名，如：get_logs
+     * @param args           传到插件方法中的参数 请传入数组，示例：{p:1,rows:10,callback:"demo.get_logs"}
+     * @param callback       请传入处理函数，响应内容将传入到第一个参数中
+     */
+    request_plugin:function(plugin_name, function_name, args, callback,callbackfail, timeout) {
+        if (!timeout) timeout = 3600;
+        $.ajax({
+            type:'POST',
+            url: '/plugin?action=a&s=' + function_name + '&name=' + plugin_name,
+            data: args,
+            timeout:timeout,
+            success: function(rdata) {
+                
+					if(rdata.status==3){
+						return callback(rdata);
+						//return;
+					}
+                    layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+                    //return;
+                
+                return callback(rdata);
+            },
+            error: function(ex) {
+                if (!callback) {
+                    layer.msg('请求过程发现错误!', { icon: 2 });
+                    return;
+                }
+                return callbackfail(ex);
+            }
+        });
+    }
+};
+
+    //第一次打开窗口时调用
+    ca.deatil();
+
+</script>

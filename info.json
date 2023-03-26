@@ -1,0 +1,9 @@
+{
+  "title": "CA帮手",
+  "name": "cahelper",
+  "ps": "此插件能帮助您更好管理私有CA",
+  "versions": "1.2",
+  "checks": "/www/server/panel/plugin/cahelper",
+  "author": "gacjie",
+  "home": "https://www.baota.me"
+}
