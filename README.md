@@ -5,7 +5,8 @@ cahelper是由原作者xieyi1393编写的证书CA签发工具（宝塔插件）�
 ###### 技术交流
 技术教程：www.baota.me  
 QQ交流群：699927761       
-TG交流群：t.me/btfans   
+TG交流群：t.me/btfans  
+相关教程：https://www.baota.me/tag/cahelper.html
 
 ###### 使用方法   
  **[(点此免费领取0.99元专业版体验券，3188元大礼包)](https://www.bt.cn/?invite_code=MV9yaHFycXY=)**   
